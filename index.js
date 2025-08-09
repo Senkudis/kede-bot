@@ -29,7 +29,11 @@ const triviaQuestions = [
 
 const client = new Client({
   authStrategy: new LocalAuth(),
-  puppeteer: { headless: true, args: ['--no-sandbox','--disable-setuid-sandbox'] }
+  puppeteer: {
+    headless: true,
+    executablePath: '/usr/bin/google-chrome',
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  }
 });
 
 client.on('qr', qr => { qrcode.generate(qr, { small: true }); console.log('امسح QR بكاميرا واتساب'); });
