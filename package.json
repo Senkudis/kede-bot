@@ -8,6 +8,10 @@
   "dependencies": {
     "node-cron": "^3.0.2",
     "qrcode-terminal": "^0.12.0",
-    "whatsapp-web.js": "^1.19.6"
+    "whatsapp-web.js": "^1.19.6",
+    "puppeteer": "^22.6.2"
+  },
+  "puppeteer": {
+    "skipChromiumDownload": true
   }
 }
