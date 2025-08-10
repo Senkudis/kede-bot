@@ -1,8 +1,9 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, Location } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const cron = require('node-cron');
 const path = require('path');
+const puppeteer = require('puppeteer');
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -31,8 +32,17 @@ const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
     headless: true,
-    executablePath: '/usr/bin/google-chrome',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--single-process',
+      '--disable-gpu'
+    ],
+    executablePath: puppeteer.executablePath()
   }
 });
 
@@ -90,6 +100,7 @@ client.on('message', async msg => {
 سؤال - نبدأ سؤال تريفيا
 إجابتك: أ/ب/ج - للرد على السؤال
 سحب - سحب عشوائي من المشتركين
+موقع - إرسال موقعي
 مساعدة - هذه الرسالة`
     );
   }
@@ -124,6 +135,12 @@ client.on('message', async msg => {
   }
   if (body.toLowerCase().includes('السلام')) {
     return msg.reply('وعليكم السلام يا زول 👋');
+  }
+  if (body === 'موقع') {
+    const latitude = 15.5007;   // خط العرض
+    const longitude = 32.5599;  // خط الطول
+    const description = '📍 موقعي الحالي في الخرطوم';
+    return client.sendMessage(from, new Location(latitude, longitude, description));
   }
 });
 
