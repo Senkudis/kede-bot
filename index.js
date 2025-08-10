@@ -51,7 +51,7 @@ const client = new Client({
   }
 });
 
-// رفع QR لموقع مؤقت
+// رفع QR لموقع imgbb
 client.on('qr', async qr => {
   console.log('📌 جاري توليد ورفع كود QR...');
   const qrPath = path.join(__dirname, 'qr.png');
@@ -60,12 +60,16 @@ client.on('qr', async qr => {
     await QRCode.toFile(qrPath, qr);
 
     const form = new FormData();
-    form.append('file', fs.createReadStream(qrPath));
+    form.append('image', fs.createReadStream(qrPath));
 
-    const uploadRes = await axios.post('https://file.io', form, { headers: form.getHeaders() });
+    const uploadRes = await axios.post(
+      'https://api.imgbb.com/1/upload?key=8df2f63e10f44cf4f6f7d99382861e76',
+      form,
+      { headers: form.getHeaders() }
+    );
 
-    if (uploadRes.data && (uploadRes.data.link || uploadRes.data.url)) {
-      console.log('✅ رابط الـ QR (يفتح مرة واحدة فقط):', uploadRes.data.link || uploadRes.data.url);
+    if (uploadRes.data && uploadRes.data.data && uploadRes.data.data.url) {
+      console.log('✅ رابط الـ QR:', uploadRes.data.data.url);
     } else {
       console.log('❌ فشل رفع الـ QR:', uploadRes.data);
     }
