@@ -17,6 +17,11 @@ if (fs.existsSync(DATA_FILE)) {
   try { data = JSON.parse(fs.readFileSync(DATA_FILE)); } 
   catch (e) { console.error('خطأ في قراءة data.json', e); }
 }
+
+if (!Array.isArray(data.welcomedChats)) {
+  data.welcomedChats = [];
+}
+
 function saveData(){ fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2)); }
 function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -239,12 +244,16 @@ client.on('message_create', async (msg) => {
 client.on('message', async msg => {
   const from = msg.from, body = msg.body.trim();
 
-  // ترحيب أول رسالة مباشرة (للفرد)
-  if (!msg.from.endsWith('@g.us') && !data.welcomedChats.includes(from)) {
-    data.welcomedChats.push(from);
-    saveData();
-    msg.reply(getCommandsList());
-  }
+  /// ترحيب أول رسالة مباشرة (للفرد)
+if (
+  !msg.from.endsWith('@g.us') &&
+  Array.isArray(data.welcomedChats) &&
+  !data.welcomedChats.includes(from)
+) {
+  data.welcomedChats.push(from);
+  saveData();
+  msg.reply(getCommandsList());
+}
 
   // ردود عفوية على كلمة النداء "كيدي-بوت-روبوت"
   if (body === 'كيدي-بوت-روبوت') {
