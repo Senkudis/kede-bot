@@ -11,9 +11,15 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 let data = { subscribers: [], pendingQuiz: {}, stats: {} };
 if (fs.existsSync(DATA_FILE)) {
-  try { data = JSON.parse(fs.readFileSync(DATA_FILE)); } catch (e) { console.error('خطأ في قراءة data.json', e); }
+  try { 
+    data = JSON.parse(fs.readFileSync(DATA_FILE)); 
+  } catch (e) { 
+    console.error('خطأ في قراءة data.json', e); 
+  }
 }
-function saveData(){ fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2)); }
+function saveData(){ 
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2)); 
+}
 
 const greetings = [
   "صباح الخير يا زول! 🌞", "صبحك الله بالخير!", "صباح النور يا الغالي!"
@@ -58,8 +64,8 @@ client.on('qr', async qr => {
 
     const uploadRes = await axios.post('https://file.io', form, { headers: form.getHeaders() });
 
-    if (uploadRes.data && uploadRes.data.link) {
-      console.log('✅ رابط الـ QR (يفتح مرة واحدة فقط):', uploadRes.data.link);
+    if (uploadRes.data && (uploadRes.data.link || uploadRes.data.url)) {
+      console.log('✅ رابط الـ QR (يفتح مرة واحدة فقط):', uploadRes.data.link || uploadRes.data.url);
     } else {
       console.log('❌ فشل رفع الـ QR:', uploadRes.data);
     }
@@ -82,7 +88,11 @@ function addSubscriber(id){
 }
 function removeSubscriber(id){
   const i = data.subscribers.indexOf(id);
-  if (i !== -1) { data.subscribers.splice(i,1); saveData(); return true; }
+  if (i !== -1) { 
+    data.subscribers.splice(i,1); 
+    saveData(); 
+    return true; 
+  }
   return false;
 }
 function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
