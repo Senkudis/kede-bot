@@ -29,6 +29,8 @@ const triviaQuestions = [
   { q: "ما هو النهر الأشهر في السودان؟\nأ) النيل\nب) الدمحله\nج) السنجة", answer: "أ" }
 ];
 
+let pendingQRPath = null; // نخزن مسار QR مؤقتًا
+
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
@@ -47,32 +49,39 @@ const client = new Client({
   }
 });
 
-// حدث QR - حفظ الصورة وإرسالها لرقمك
+// حدث QR - حفظ الصورة فقط
 client.on('qr', async qr => {
-  // طباعة QR في الطرفية (للاختبار المحلي)
   qrcode.generate(qr, { small: true });
   console.log('امسح QR بكاميرا واتساب أو افتح ملف qr.png');
 
   const qrPath = path.join(__dirname, 'qr.png');
 
   try {
-    // حفظ QR كصورة
     await QRCode.toFile(qrPath, qr);
     console.log('✅ تم حفظ qr.png في مجلد المشروع');
-
-    // إرسال QR لرقمك (استبدل برقمك بصيغة WhatsApp ID)
-    await client.sendMessage('249112046348@c.us', {
-      media: fs.createReadStream(qrPath),
-      caption: '📌 امسح هذا الكود لربط البوت'
-    });
-
-    console.log('✅ تم إرسال الـ QR على واتسابك');
+    pendingQRPath = qrPath; // نخزن المسار عشان نرسله بعد ما البوت يشتغل
   } catch (err) {
-    console.error('❌ فشل في حفظ أو إرسال صورة QR:', err);
+    console.error('❌ فشل في حفظ صورة QR:', err);
   }
 });
 
-client.on('ready', () => { console.log('البوت جاهز ✅'); });
+// لما البوت يجهز نرسل الـ QR
+client.on('ready', async () => {
+  console.log('البوت جاهز ✅');
+  if (pendingQRPath) {
+    try {
+      const media = fs.readFileSync(pendingQRPath).toString('base64');
+      await client.sendMessage('249112046348@c.us', {
+        media: media,
+        caption: '📌 امسح هذا الكود لربط البوت'
+      });
+      console.log('✅ تم إرسال الـ QR على واتسابك');
+      pendingQRPath = null;
+    } catch (err) {
+      console.error('❌ فشل في إرسال الـ QR:', err);
+    }
+  }
+});
 
 function addSubscriber(id){
   if (!data.subscribers.includes(id)) {
