@@ -1,10 +1,11 @@
 const { Client, LocalAuth, Location } = require('whatsapp-web.js');
-const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const cron = require('node-cron');
 const path = require('path');
 const puppeteer = require('puppeteer');
-const QRCode = require('qrcode'); // مكتبة لحفظ صورة QR
+const QRCode = require('qrcode');
+const axios = require('axios');
+const FormData = require('form-data');
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -21,15 +22,10 @@ const sudaneseJokes = [
   "مرة واحد سوداني قلب طيارة.. قالوا ليهو ليه؟ قال: داير أطير زي البط!",
   "فيهو واحد قال لصاحبه: الجو حار شديد، صاحبه قال ليهو: ده لأنو الشمس جايه من الخرطوم!"
 ];
-const sudaneseProverbs = [
-  "الجار قبل الدار", "اللي ما يعرف الصقر يشويه"
-];
 const triviaQuestions = [
   { q: "ما هي عاصمة السودان؟\nأ) الخرطوم\nب) أم درمان\nج) الأبيض", answer: "أ" },
   { q: "ما هو النهر الأشهر في السودان؟\nأ) النيل\nب) الدمحله\nج) السنجة", answer: "أ" }
 ];
-
-let pendingQRPath = null; // نخزن مسار QR مؤقتًا
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -49,38 +45,31 @@ const client = new Client({
   }
 });
 
-// حدث QR - حفظ الصورة فقط
+// رفع QR لموقع مؤقت
 client.on('qr', async qr => {
-  qrcode.generate(qr, { small: true });
-  console.log('امسح QR بكاميرا واتساب أو افتح ملف qr.png');
-
+  console.log('📌 جاري توليد ورفع كود QR...');
   const qrPath = path.join(__dirname, 'qr.png');
 
   try {
     await QRCode.toFile(qrPath, qr);
-    console.log('✅ تم حفظ qr.png في مجلد المشروع');
-    pendingQRPath = qrPath; // نخزن المسار عشان نرسله بعد ما البوت يشتغل
+
+    const form = new FormData();
+    form.append('file', fs.createReadStream(qrPath));
+
+    const uploadRes = await axios.post('https://file.io', form, { headers: form.getHeaders() });
+
+    if (uploadRes.data && uploadRes.data.link) {
+      console.log('✅ رابط الـ QR (يفتح مرة واحدة فقط):', uploadRes.data.link);
+    } else {
+      console.log('❌ فشل رفع الـ QR:', uploadRes.data);
+    }
   } catch (err) {
-    console.error('❌ فشل في حفظ صورة QR:', err);
+    console.error('❌ خطأ في حفظ أو رفع QR:', err);
   }
 });
 
-// لما البوت يجهز نرسل الـ QR
-client.on('ready', async () => {
+client.on('ready', () => {
   console.log('البوت جاهز ✅');
-  if (pendingQRPath) {
-    try {
-      const media = fs.readFileSync(pendingQRPath).toString('base64');
-      await client.sendMessage('249112046348@c.us', {
-        media: media,
-        caption: '📌 امسح هذا الكود لربط البوت'
-      });
-      console.log('✅ تم إرسال الـ QR على واتسابك');
-      pendingQRPath = null;
-    } catch (err) {
-      console.error('❌ فشل في إرسال الـ QR:', err);
-    }
-  }
 });
 
 function addSubscriber(id){
@@ -146,7 +135,7 @@ client.on('message', async msg => {
   if (body === 'سحب') {
     if (data.subscribers.length === 0) return msg.reply('ما في مشتركين أبداً.');
     const pick = pickRandom(data.subscribers);
-    return msg.reply(`اللي ربحت (id): ${pick}\nلو دا بوت داخل جروب ممكن نطلع الاسم الحقيقي.`);
+    return msg.reply(`اللي ربحت (id): ${pick}`);
   }
   if (body === 'سؤال') {
     const q = pickRandom(triviaQuestions);
