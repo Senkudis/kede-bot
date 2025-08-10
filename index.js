@@ -10,8 +10,8 @@ const QRCode = require('qrcode');
 const axios = require('axios');
 const FormData = require('form-data');
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || ''; // ضع مفتاحك هنا في .env
-const IMGBB_KEY = process.env.IMGBB_KEY || ''; // اختياري - لو عندك
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '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'; // ضع مفتاحك هنا في .env
+const IMGBB_KEY = process.env.IMGBB_KEY || '8df2f63e10f44cf4f6f7d99382861e76'; // اختياري - لو عندك
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 let data = { subscribers: [], pendingQuiz: {}, stats: {}, groupStats: {}, pendingGames: {} };
@@ -26,8 +26,8 @@ function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
 
 // نكات حضارية وفكاهة
 const jokes = [
-  "مرة واحد صاحي بدري وقف يقول: يا رب خلّي فنجان القهوة معاي طول اليوم!",
-  "مرّة زول سألني: سر السعادة؟ قلت ليهو: فنجان قهوة وصوت أمك وراحة بال.",
+  "قال ليك في مسطول بكتب مع الأستاذ وكل ما الأستاذ يمسح السبوره يشرط الورقة",
+  "مسطول شغال بتاع مرور قبض واحد يفحط قطعة إيصال بثلاثين ألف قام أداه خمسين الف المسطول قالي مامعاي فكه فحط بالعشرين الباقية وتعال.",
   "المزاج زي الفجر — لو صحّيت عليه تتمنى اليوم كله جميل.",
   "مرة واحد قالي أحبك، قلت: حاضر بس خلّيني أخلص شاي الصباح.",
   "قالوا الدنيا جزئين: قهوة وناس طيبة — خلّينا نضيف جزء: ضحكة مع أحبابك."
