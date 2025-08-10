@@ -4,6 +4,7 @@ const fs = require('fs');
 const cron = require('node-cron');
 const path = require('path');
 const puppeteer = require('puppeteer');
+const QRCode = require('qrcode'); // إضافة مكتبة qrcode لحفظ الصورة
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -46,7 +47,21 @@ const client = new Client({
   }
 });
 
-client.on('qr', qr => { qrcode.generate(qr, { small: true }); console.log('امسح QR بكاميرا واتساب'); });
+// تعديل حدث الـ QR لحفظه كصورة
+client.on('qr', async qr => {
+  // طباعة QR في الطرفية
+  qrcode.generate(qr, { small: true });
+  console.log('امسح QR بكاميرا واتساب أو افتح ملف qr.png');
+
+  // حفظ QR كصورة PNG
+  try {
+    await QRCode.toFile(path.join(__dirname, 'qr.png'), qr);
+    console.log('✅ تم حفظ qr.png في مجلد المشروع');
+  } catch (err) {
+    console.error('❌ فشل في حفظ صورة QR:', err);
+  }
+});
+
 client.on('ready', () => { console.log('البوت جاهز ✅'); });
 
 function addSubscriber(id){
@@ -140,8 +155,4 @@ client.on('message', async msg => {
     const latitude = 15.5007;   // خط العرض
     const longitude = 32.5599;  // خط الطول
     const description = '📍 موقعي الحالي في الخرطوم';
-    return client.sendMessage(from, new Location(latitude, longitude, description));
-  }
-});
-
-client.initialize();
+    return client.sendMessage(from, new
