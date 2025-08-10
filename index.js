@@ -155,4 +155,8 @@ client.on('message', async msg => {
     const latitude = 15.5007;   // خط العرض
     const longitude = 32.5599;  // خط الطول
     const description = '📍 موقعي الحالي في الخرطوم';
-    return client.sendMessage(from, new
+    return client.sendMessage(from, new Location(latitude, longitude, description));
+  }
+});
+
+client.initialize();
