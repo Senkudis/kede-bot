@@ -4,7 +4,7 @@ const fs = require('fs');
 const cron = require('node-cron');
 const path = require('path');
 const puppeteer = require('puppeteer');
-const QRCode = require('qrcode'); // إضافة مكتبة qrcode لحفظ الصورة
+const QRCode = require('qrcode'); // مكتبة لحفظ صورة QR
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -47,18 +47,28 @@ const client = new Client({
   }
 });
 
-// تعديل حدث الـ QR لحفظه كصورة
+// حدث QR - حفظ الصورة وإرسالها لرقمك
 client.on('qr', async qr => {
-  // طباعة QR في الطرفية
+  // طباعة QR في الطرفية (للاختبار المحلي)
   qrcode.generate(qr, { small: true });
   console.log('امسح QR بكاميرا واتساب أو افتح ملف qr.png');
 
-  // حفظ QR كصورة PNG
+  const qrPath = path.join(__dirname, 'qr.png');
+
   try {
-    await QRCode.toFile(path.join(__dirname, 'qr.png'), qr);
+    // حفظ QR كصورة
+    await QRCode.toFile(qrPath, qr);
     console.log('✅ تم حفظ qr.png في مجلد المشروع');
+
+    // إرسال QR لرقمك (استبدل برقمك بصيغة WhatsApp ID)
+    await client.sendMessage('249112046348@c.us', {
+      media: fs.createReadStream(qrPath),
+      caption: '📌 امسح هذا الكود لربط البوت'
+    });
+
+    console.log('✅ تم إرسال الـ QR على واتسابك');
   } catch (err) {
-    console.error('❌ فشل في حفظ صورة QR:', err);
+    console.error('❌ فشل في حفظ أو إرسال صورة QR:', err);
   }
 });
 
@@ -79,11 +89,13 @@ function removeSubscriber(id){
 }
 function pickRandom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
+// رسائل الصباح
 cron.schedule('0 8 * * *', () => {
   const text = pickRandom(greetings) + "\nحاب تشارك في لعبة اليوم؟ اكتب 'سؤال'";
   data.subscribers.forEach(id => client.sendMessage(id, text));
 }, { timezone: 'Africa/Khartoum' });
 
+// رسائل المساء
 cron.schedule('0 20 * * *', () => {
   const text = "مساء الخير! دا ما تنسى تضحك شوية 😊\nاكتب 'نكتة' عشان نرسل ليك واحدة.";
   data.subscribers.forEach(id => client.sendMessage(id, text));
@@ -152,8 +164,8 @@ client.on('message', async msg => {
     return msg.reply('وعليكم السلام يا زول 👋');
   }
   if (body === 'موقع') {
-    const latitude = 15.5007;   // خط العرض
-    const longitude = 32.5599;  // خط الطول
+    const latitude = 15.5007;
+    const longitude = 32.5599;
     const description = '📍 موقعي الحالي في الخرطوم';
     return client.sendMessage(from, new Location(latitude, longitude, description));
   }
