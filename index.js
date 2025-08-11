@@ -316,7 +316,7 @@ if (body === 'العب رقم') {
   return msg.reply('اخترت رقم 1-10، خمّن!');
 }
 
-iif (data.pendingGames[from] && data.pendingGames[from].type === 'guess' && /^\d+$/.test(body)) {
+if (data.pendingGames[from] && data.pendingGames[from].type === 'guess' && /^\d+$/.test(body)) {
   const g = data.pendingGames[from];
   const guess = parseInt(body); // ✅ تعريف المتغير
   g.tries++;
