@@ -21,6 +21,9 @@ if (fs.existsSync(DATA_FILE)) {
 if (!Array.isArray(data.welcomedChats)) {
   data.welcomedChats = [];
 }
+if (!Array.isArray(data.welcomedChatsPrivate)) {
+  data.welcomedChatsPrivate = [];
+}
 
 function saveData(){ fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2)); }
 function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
