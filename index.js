@@ -128,13 +128,20 @@ const client = new Client({
   puppeteer: {
     headless: true,
     args: [
-      '--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas','--no-first-run','--no-zygote',
-      '--single-process','--disable-gpu'
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu',
+      '--window-size=1920,1080'
     ],
-    executablePath: puppeteer.executablePath()
+    defaultViewport: null
+    // removable: executablePath: puppeteer.executablePath()
   }
 });
+
 
 let prayerJobs = [];
 
@@ -302,10 +309,16 @@ if (
     return msg.reply(`📊 تاريخ الإنشاء: ${createdAt}\n👥 الأعضاء: ${membersCount}\n🏆 الأكثر تفاعل: ${topName} (${topCount})\n😴 الأقل تفاعل: ${bottomName} (${bottomCount})`);
   }
 
-  if (body === 'العب رقم') { data.pendingGames[from] = { type: 'guess', number: Math.floor(Math.random()*10)+1, tries: 0 }; saveData(); return msg.reply('اخترت رقم 1-10، خمّن!'); }
-  if (data.pendingGames[from]?.type === 'guess' && /^\d+$/.test(body)) {
-    const g = data.pendingGames[from], guess = +body;
-    g.tries++;
+if (body === 'العب رقم') {
+  if (typeof data.pendingGames !== 'object' || data.pendingGames === null) data.pendingGames = {};
+  data.pendingGames[from] = { type: 'guess', number: Math.floor(Math.random()*10)+1, tries: 0 };
+  saveData();
+  return msg.reply('اخترت رقم 1-10، خمّن!');
+}
+
+if (data.pendingGames[from] && data.pendingGames[from].type === 'guess' && /^\d+$/.test(body)) {
+  const g = data.pendingGames[from];
+  g.tries++;
     if (guess === g.number) { delete data.pendingGames[from]; saveData(); return msg.reply(`🎉 صحيح (${guess}) بعد ${g.tries} محاولة`); }
     saveData(); return msg.reply(guess < g.number ? 'أعلى!' : 'أقل!');
   }
