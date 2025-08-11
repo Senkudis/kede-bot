@@ -9,10 +9,10 @@ const axios = require('axios');
 const FormData = require('form-data');
 
 const OPENAI_API_KEY = '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';
-const IMGBB_KEY = '8df2f63e10f44cf4f6f7d99382861e76';
+const IMGBB_KEY = '152b8cc7a967f58e9dff9b2bcc2ac685';
 
 const DATA_FILE = path.join(__dirname, 'data.json');
-let data = { subscribers: [], pendingQuiz: {}, stats: {}, groupStats: {}, pendingGames: {}, welcomedChats: [] };
+let data = { subscribers: [], pendingQuiz: {}, stats: {}, groupStats: {}, pendingGames: {}, welcomedChatsPrivate: [], welcomedChatsGroups: [] };
 if (fs.existsSync(DATA_FILE)) {
   try { data = JSON.parse(fs.readFileSync(DATA_FILE)); } 
   catch (e) { console.error('خطأ في قراءة data.json', e); }
@@ -239,8 +239,8 @@ client.on('message_create', async (msg) => {
   if (msg.from.endsWith('@g.us')) {
     const chat = await msg.getChat();
     if (chat.participants.find(p => p.id._serialized === client.info.wid._serialized)) {
-      if (!data.welcomedChats.includes(chat.id._serialized)) {
-        data.welcomedChats.push(chat.id._serialized);
+      if (!data.welcomedChatsGroups.includes(chat.id._serialized)) {
+  data.welcomedChatsGroups.push(chat.id._serialized);
         saveData();
         chat.sendMessage(getCommandsList());
       }
@@ -255,9 +255,9 @@ client.on('message', async msg => {
 if (
   !msg.from.endsWith('@g.us') &&
   Array.isArray(data.welcomedChats) &&
-  !data.welcomedChats.includes(from)
+ !data.welcomedChatsPrivate.includes(from)
 ) {
-  data.welcomedChats.push(from);
+  data.welcomedChatsPrivate.push(from);
   saveData();
   msg.reply(getCommandsList());
 }
@@ -276,7 +276,7 @@ if (
       "معاك الروبوت العجيب، قل لي كيف أساعدك.",
       "يا مرحب بيك، قول لي أخبارك!"
     ];
-    return msg.reply(spontaneousReplies.join('\n\n'));
+    return msg.reply(pickRandom(spontaneousReplies));
   }
 
   // تحديث احصائيات القروب
@@ -316,12 +316,18 @@ if (body === 'العب رقم') {
   return msg.reply('اخترت رقم 1-10، خمّن!');
 }
 
-if (data.pendingGames[from] && data.pendingGames[from].type === 'guess' && /^\d+$/.test(body)) {
+iif (data.pendingGames[from] && data.pendingGames[from].type === 'guess' && /^\d+$/.test(body)) {
   const g = data.pendingGames[from];
+  const guess = parseInt(body); // ✅ تعريف المتغير
   g.tries++;
-    if (guess === g.number) { delete data.pendingGames[from]; saveData(); return msg.reply(`🎉 صحيح (${guess}) بعد ${g.tries} محاولة`); }
-    saveData(); return msg.reply(guess < g.number ? 'أعلى!' : 'أقل!');
+  if (guess === g.number) {
+    delete data.pendingGames[from];
+    saveData();
+    return msg.reply(`🎉 صحيح (${guess}) بعد ${g.tries} محاولة`);
   }
+  saveData();
+  return msg.reply(guess < g.number ? 'أعلى!' : 'أقل!');
+}
   if (body === 'لغز') { const q = pickRandom(triviaQuestions); data.pendingQuiz[from] = q; saveData(); return msg.reply(q.q); }
   if (['أ','ب','ج','A','B','C','a','b','c'].includes(body)) {
     const p = data.pendingQuiz[from];
