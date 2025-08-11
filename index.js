@@ -8,6 +8,35 @@ const QRCode = require('qrcode');
 const axios = require('axios');
 const FormData = require('form-data');
 
+// ===== تحميل وتهيئة البيانات =====
+
+const DATA_FILE = path.join(__dirname, 'data.json');
+
+// تحميل البيانات من ملف JSON إذا كان موجود
+let data = {};
+if (fs.existsSync(DATA_FILE)) {
+    try {
+        data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+    } catch (error) {
+        console.error('❌ خطأ في قراءة ملف البيانات:', error);
+        data = {};
+    }
+}
+
+// تهيئة الحقول المفقودة
+if (!Array.isArray(data.subscribers)) data.subscribers = [];
+if (!data.pendingQuiz || typeof data.pendingQuiz !== 'object') data.pendingQuiz = {};
+if (!data.pendingGames || typeof data.pendingGames !== 'object') data.pendingGames = {};
+if (!data.stats || typeof data.stats !== 'object') data.stats = {};
+if (!data.groupStats || typeof data.groupStats !== 'object') data.groupStats = {};
+if (!Array.isArray(data.welcomedChatsPrivate)) data.welcomedChatsPrivate = [];
+if (!Array.isArray(data.welcomedChatsGroups)) data.welcomedChatsGroups = [];
+
+// حفظ أي تعديلات جديدة في ملف JSON
+fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+
+console.log('✅ تم تحميل وتهيئة ملف البيانات');
+
 const OPENAI_API_KEY = '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';
 const IMGBB_KEY = '152b8cc7a967f58e9dff9b2bcc2ac685';
 
@@ -24,6 +53,7 @@ if (!Array.isArray(data.welcomedChats)) {
 if (!Array.isArray(data.welcomedChatsPrivate)) {
   data.welcomedChatsPrivate = [];
 }
+
 
 function saveData(){ fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2)); }
 function pickRandom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
