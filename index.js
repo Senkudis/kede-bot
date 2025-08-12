@@ -7,6 +7,7 @@ const puppeteer = require('puppeteer');
 const QRCode = require('qrcode');
 const axios = require('axios');
 const FormData = require('form-data');
+const { Client, LocalAuth, Location, MessageMedia } = require('whatsapp-web.js');
 
 // ===== تحميل وتهيئة البيانات =====
 const DATA_FILE = path.join(__dirname, 'data.json');
@@ -49,15 +50,15 @@ function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 const jokes = [
   "قال ليك في مسطول بكتب مع الأستاذ وكل ما الأستاذ يمسح السبوره يشرط الورقة",
   "مسطول شغال بتاع مرور قبض واحد يفحط قطعة إيصال بثلاثين ألف قام أداه خمسين الف المسطول قالي مامعاي فكه فحط بالعشرين الباقية وتعال.",
-  "المزاج زي الفجر — لو صحّيت عليه تتمنى اليوم كله جميل.",
-  "مرة واحد قالي أحبك، قلت: حاضر بس خلّيني أخلص شاي الصباح.",
-  "قالوا الدنيا جزئين: قهوة وناس طيبة — خلّينا نضيف جزء: ضحكة مع أحبابك."
-];
-
+    " طبيب اسنان قال لي زبونو : حسيت بي وجع؟ قال ليهو: مهما كان في الم ما بصل الم الفاتورة الجاياني اسي .",
+        "مرة واحد مشى السوق، نسى يرجع!",
+        "واحد قال لي صاحبو: عندك ساعة؟ قال ليهو: لا والله الزمن فاتني.",
+        "مرة اتنين قابلوا بعض، واحد قال للتاني: والله لو ما انت كان ما لقيتني."
+    ];
 // تريفيا
 const triviaQuestions = [
   { q: "ما هي عاصمة السودان؟\nأ) الخرطوم\nب) أم درمان\nج) الأبيض", answer: "أ" },
-  { q: "ما هو النهر الأشهر في السودان؟\nأ) النيل\nب) الدمحله\nج) السنجة", answer: "أ" },
+  { q: "ما هو النهر الأشهر في السودان؟\nأ) النيل\nب) الدمحله\nج) الفرات", answer: "أ" },
   { q: "ما هو العنصر الذي رمزه H؟\nأ) هيليوم\nب) هيدروجين\nج) هافنيوم", answer: "ب" }
 ];
 
@@ -280,7 +281,7 @@ client.on('message', async msg => {
   }
 
   // ردود عفوية على كلمة النداء "كيدي-بوت-روبوت"
-  if (body === 'كيدي-بوت-روبوت') {
+  if (body === 'كيدي') {
     const spontaneousReplies = [
       "أها، كيف أقدر أساعدك يا زول؟",
       "حاضر، قول لي الحاصل شنو!",
@@ -380,13 +381,13 @@ client.on('message', async msg => {
     return msg.reply(`أنا اخترت ${botChoice} — ${result}`);
   }
 
-  if (body.startsWith('ذكاء ')) {
+  if (body.startsWith('ذكاء')) {
     const prompt = body.slice(6).trim();
     try {
-      const resp = await axios.post(`${API_BASE}/v1/chat/completions`, {
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }]
-      }, { headers: { Authorization: `Bearer ${API_KEY}` } });
+      const resp = await axios.post(`https://api.openai.com/v1/chat/completions`, {
+  model: "gpt-3.5-turbo",
+  messages: [{ role: "user", content: prompt }]
+}, { headers: { Authorization: `Bearer ${OPENAI_API_KEY}` } });
       return msg.reply(resp.data.choices[0].message.content);
     } catch (err) {
       console.error(err);
@@ -444,6 +445,19 @@ client.on('message', async msg => {
   if (body === 'مساعدة') {
     return msg.reply('للدعم الفني، تواصل مع: https://wa.me/249112046348');
   }
+});
+// ترحيب بعضو جديد
+client.on('message', async msg => {
+    if (msg.type === 'notification' && msg.subtype === 'add') {
+        const chat = await msg.getChat();
+        const added = msg.recipientIds;
+        for (let user of added) {
+            await chat.sendMessage(
+                `🎉 أهلاً وسهلاً بـ @${user.split('@')[0]} في قروب *${chat.name}*! 🌟`,
+                { mentions: [await chat.getContact(user)] }
+            );
+        }
+    }
 });
 
 // حفظ البيانات عند إغلاق البرنامج
