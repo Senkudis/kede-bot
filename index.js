@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, LocalAuth, Location } = require('whatsapp-web.js');
+const { Client, LocalAuth, Location, MessageMedia } = require('whatsapp-web.js');
 const fs = require('fs');
 const cron = require('node-cron');
 const path = require('path');
@@ -7,7 +7,6 @@ const puppeteer = require('puppeteer');
 const QRCode = require('qrcode');
 const axios = require('axios');
 const FormData = require('form-data');
-const { Client, LocalAuth, Location, MessageMedia } = require('whatsapp-web.js');
 
 // ===== تحميل وتهيئة البيانات =====
 const DATA_FILE = path.join(__dirname, 'data.json');
