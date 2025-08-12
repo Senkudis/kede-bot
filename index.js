@@ -39,7 +39,7 @@ console.log('✅ تم تحميل وتهيئة ملف البيانات');
 
 // مفاتيح API (تركتها كما هي)
 const OPENAI_API_KEY = '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';
-const IMGBB_KEY = '152b8cc7a967f58e9dff9b2bcc2ac685';
+const IMGBB_KEY = 'b635f7e3c7bdecdfb39e47f3fc096e08';
 
 // دوال مساعدة
 function saveData() { fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2)); }
